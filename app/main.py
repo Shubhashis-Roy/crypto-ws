@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, HTTPException
 import asyncio
+import time
 
 from app.websocket_manager import ConnectionManager
 from app.binance_client import listen_binance
@@ -8,6 +9,9 @@ from app.state import latest_price
 app = FastAPI()
 manager = ConnectionManager()
 
+client_last_message = {}
+RATE_LIMIT_SECONDS = 0.1
+
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(listen_binance(manager))
@@ -15,11 +19,22 @@ async def startup_event():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
+
     try:
         while True:
-            await websocket.receive_text()  # keep connection alive
+            await websocket.receive_text()
+
+            now = time.time()
+            last = client_last_message.get(websocket, 0)
+
+            if now - last < RATE_LIMIT_SECONDS:
+                continue
+
+            client_last_message[websocket] = now
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+        client_last_message.pop(websocket, None)
 
 # Get all price
 @app.get("/price")
