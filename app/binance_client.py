@@ -4,7 +4,10 @@ import websockets
 from app.websocket_manager import ConnectionManager
 from app.state import latest_price    
 
-BINANCE_URL = "wss://stream.binance.com:9443/ws/btcusdt@ticker"
+BINANCE_URL = (
+    "wss://stream.binance.com:9443/stream?"
+    "streams=btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker"
+)
 
 async def listen_binance(manager: ConnectionManager):
 
@@ -14,14 +17,15 @@ async def listen_binance(manager: ConnectionManager):
             data = await websocket.recv()
             parsed = json.loads(data)
 
+            ticker = parsed["data"]  # important change
+
             message = {
-                "symbol": parsed["s"],
-                "last_price": float(parsed["c"]),
-                "change_percent": float(parsed["P"]),
-                "timestamp": parsed["E"]
+                "symbol": ticker["s"],
+                "price": float(ticker["c"]),
+                "change_percent": float(ticker["P"]),
+                "timestamp": ticker["E"]
             }
 
-            latest_price.clear()
-            latest_price.update(message)
+            latest_price[message["symbol"]] = message
 
             await manager.broadcast(message)

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, HTTPException
 import asyncio
 
 from app.websocket_manager import ConnectionManager
@@ -21,6 +21,32 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
+# Get all price
 @app.get("/price")
-async def get_price():
-    return latest_price
+async def get_all_prices():
+    try:
+        return latest_price
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch all prices: {str(e)}"
+        )
+
+# Get price by symbol
+@app.get("/price/{symbol}")
+async def get_price(symbol: str):
+    try:
+        result = latest_price.get(symbol.upper())
+        if result is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Symbol '{symbol}' not found"
+            )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching price for {symbol}: {str(e)}"
+        )
