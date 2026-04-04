@@ -30,8 +30,8 @@ class ConnectionManager:
         for connection in self.active_connections:
             last = self.last_sent.get(connection, 0)   
 
-            # if now - last < RATE_LIMIT_SECONDS:  
-            #     continue
+            if now - last < RATE_LIMIT_SECONDS:  
+                continue
 
             try:
                 await connection.send_json(message)
