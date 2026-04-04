@@ -5,7 +5,7 @@ import websockets
 from app.queue import message_queue
 
 BINANCE_URL = (
-    "wss://stream.binance.com:9443/stream?"
+    "wss://stream.binance.us:9443/stream?"
     "streams=btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker"
 )
 
