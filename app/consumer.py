@@ -8,6 +8,4 @@ async def consume_messages(manager: ConnectionManager):
 
         latest_price[message["symbol"]] = message
 
-        # await manager.broadcast(message)
-        # await manager.broadcast(latest_price)
         await manager.broadcast(dict(latest_price))
