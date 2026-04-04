@@ -9,14 +9,11 @@ BINANCE_URL = (
     "streams=btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker"
 )
 
-
 async def listen_binance():
-    while True:  # 🔁 reconnect loop
+    while True:  
         try:
-            print("🔌 Connecting to Binance...")
 
             async with websockets.connect(BINANCE_URL) as websocket:
-                print("✅ Connected to Binance")
 
                 while True:
                     data = await websocket.recv()
@@ -34,6 +31,4 @@ async def listen_binance():
                     await message_queue.put(message)
 
         except Exception as e:
-            print("❌ Binance connection error:", e)
-            print("⏳ Reconnecting in 5 seconds...")
             await asyncio.sleep(5)
